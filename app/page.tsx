@@ -8,9 +8,10 @@ import { AlertCircle, CheckCircle, Info } from 'lucide-react'
 
 export default function EnglishTeacher() {
     const [userText, setUserText] = useState('')
-    const [result, setResult] = useState(null)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [result, setResult] = useState<any>(null)
     const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState(null)
+    const [error, setError] = useState<string | null>(null)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -39,6 +40,7 @@ export default function EnglishTeacher() {
             setResult(data)
         } catch (err) {
             setError('An error occurred. Please try again.')
+            console.log(err);
         } finally {
             setIsLoading(false)
         }
@@ -98,7 +100,7 @@ export default function EnglishTeacher() {
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold text-center text-blue-600">English Teacher</CardTitle>
                     <CardDescription className="text-center text-lg">
-                        Your friendly writing helper! Type your text below and I'll help you improve it.
+                        {`Your friendly writing helper! Type your text below and I'll help you improve it.`}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
