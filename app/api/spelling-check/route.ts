@@ -142,7 +142,26 @@ async function checkWithClaude(prompt: string): Promise<CorrectionResult> {
     const response = await anthropic.messages.create({
         model: 'claude-3-sonnet-20240229',
         max_tokens: 1024,
-        system: `You are a helpful American English 5th grade teacher that checks spelling, grammar, and paragraph structure. 
+        system: `You are a helpful American English 5th grade teacher that checks spelling, grammar, and paragraph structure for 5th-grade students. 
+
+        Focus on these significant errors:
+        - Obvious spelling mistakes
+        - Major grammatical errors
+        - Clear punctuation mistakes
+        - Paragraph structure (VERY IMPORTANT)
+        
+        For paragraphs specifically:
+        - Identify where new paragraphs should start
+        - Mark these clearly in the errors list
+        - Explain the specific reason for each paragraph break (e.g., new topic, new speaker, new time/place, etc.)
+        - Consider a missing paragraph break as an error that needs correction
+        
+        DO NOT point out:
+        - Minor formatting issues like extra spaces or newlines
+        - Stylistic choices (e.g., using exclamation marks vs periods)
+        
+        Keep feedback encouraging and focused on helping the student improve their writing.
+        Always provide a corrected version of the text, even if there are no errors.
 
         Analyze the text and respond with a JSON object in this exact format:
         {
