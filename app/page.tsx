@@ -4,12 +4,25 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, CheckCircle, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle, Info, Scissors } from 'lucide-react'
+
+type ErrorType = {
+    original: string
+    correction: string
+    explanation: string
+    type: 'spelling' | 'grammar' | 'punctuation' | 'paragraph'
+}
+
+type Result = {
+    hasErrors: boolean
+    errors: ErrorType[]
+    feedback: string
+    correctedText: string
+}
 
 export default function EnglishTeacher() {
     const [userText, setUserText] = useState('')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [result, setResult] = useState<any>(null)
+    const [result, setResult] = useState<Result | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -40,10 +53,33 @@ export default function EnglishTeacher() {
             setResult(data)
         } catch (err) {
             setError('An error occurred. Please try again.')
-            console.log(err);
+            console.log(err)
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const getErrorIcon = (type: ErrorType['type']) => {
+        switch (type) {
+            case 'paragraph':
+                return <Scissors className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            default:
+                return <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+        }
+    }
+
+    const formatCorrection = (correction: string) => {
+        // Replace [PARAGRAPH BREAK] with visual indicator
+        return correction.split('[PARAGRAPH BREAK]').map((part, index) => (
+            index === 0 ? part : (
+                <span key={index}>
+                    <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-600 text-sm rounded mx-1">
+                        ¶ New Paragraph
+                    </span>
+                    {part}
+                </span>
+            )
+        ))
     }
 
     const renderResult = () => {
@@ -57,7 +93,9 @@ export default function EnglishTeacher() {
                     <h3 className="text-lg font-semibold mb-2 text-green-600">
                         {hasErrors ? "Corrected Text:" : "Your Text (No Corrections Needed):"}
                     </h3>
-                    <p className="text-lg leading-relaxed whitespace-pre-wrap">{correctedText}</p>
+                    <p className="text-lg leading-relaxed whitespace-pre-wrap">
+                        {formatCorrection(correctedText)}
+                    </p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 shadow-sm border">
@@ -66,22 +104,41 @@ export default function EnglishTeacher() {
                         {feedback && (
                             <div className="flex gap-3 items-start pb-2">
                                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                                <p className="text-gray-600">{feedback}</p>
+                                <p className="text-gray-600 whitespace-pre-wrap">{feedback}</p>
                             </div>
                         )}
                         {hasErrors && errors.length > 0 && (
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {errors.map((err: { original: string; correction: string; explanation: string }, index: number) => (
-                                    <div key={index} className="bg-gray-50 p-3 rounded-md">
+                                {errors.map((err, index) => (
+                                    <div 
+                                        key={index} 
+                                        className={`p-3 rounded-md ${
+                                            err.type === 'paragraph' ? 'bg-blue-50' : 'bg-gray-50'
+                                        }`}
+                                    >
                                         <div className="flex items-start gap-2">
-                                            <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                            {getErrorIcon(err.type)}
                                             <div>
-                                                <p className="font-medium">
-                                                    <span className="line-through text-red-500">{err.original}</span>
-                                                    {' → '}
-                                                    <span className="text-green-600">{err.correction}</span>
+                                                <div className="font-medium">
+                                                    <div className="line-through text-red-500 whitespace-pre-wrap">
+                                                        {err.original}
+                                                    </div>
+                                                    <div className="text-gray-600 text-sm">→</div>
+                                                    <div className="text-green-600 whitespace-pre-wrap">
+                                                        {formatCorrection(err.correction)}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    <span className={`px-2 py-0.5 rounded text-xs ${
+                                                        err.type === 'paragraph' ? 'bg-blue-200 text-blue-700' :
+                                                        'bg-gray-200 text-gray-700'
+                                                    }`}>
+                                                        {err.type.charAt(0).toUpperCase() + err.type.slice(1)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap">
+                                                    {err.explanation}
                                                 </p>
-                                                <p className="text-sm text-gray-600 mt-1">{err.explanation}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -98,7 +155,9 @@ export default function EnglishTeacher() {
         <div className="min-h-screen bg-gradient-to-b from-blue-100 to-green-100 py-8 px-4">
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-center text-blue-600">English Teacher</CardTitle>
+                    <CardTitle className="text-3xl font-bold text-center text-blue-600">
+                        English Teacher
+                    </CardTitle>
                     <CardDescription className="text-center text-lg">
                         {`Your friendly writing helper! Type your text below and I'll help you improve it.`}
                     </CardDescription>
@@ -121,7 +180,7 @@ export default function EnglishTeacher() {
                     </form>
                     {isLoading && (
                         <div className="mt-4 text-center">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
                             <p className="mt-2 text-green-600">Reading your text...</p>
                         </div>
                     )}
