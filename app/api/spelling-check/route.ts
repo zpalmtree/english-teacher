@@ -64,6 +64,7 @@ DO:
 * Note that some words may be incorrectly spelt phonetically - try to identify these where possible, e.g. "tarisim" -> terrorism, "damnit inflo" -> "dynamics influence"
 * Do not remove whitespace or newlines when displaying the "original" text in the correction
 * Spelling errors should be addressed one by one, not combined into a single correction - unless it is a 'phrase' that all belongs together
+* If the topic is inappropriate for this age group (sexual, graphically violent, etc), explain this in the correctedText and do not correct any of the users input
 
 Keep feedback encouraging and focused on helping the student improve their writing.
 Always provide a corrected version of the text, even if there are no errors.`;
