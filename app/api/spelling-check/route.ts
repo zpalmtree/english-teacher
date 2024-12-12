@@ -32,6 +32,7 @@ Focus on these significant errors:
 - Clear punctuation mistakes
 - Paragraph structure (VERY IMPORTANT)
 - Missing question marks
+- Unquoted spoken dialogue
 
 For paragraphs specifically:
 - Before marking any paragraph error, check if there is ANY kind of paragraph break present (including multiple newlines)
@@ -57,6 +58,7 @@ DO:
 - Fix the corrected text to be perfect, even if we are not reporting these errors (e.g. 3 newlines -> 2 newlines for paragraphs)
 - Always explain why a correction is needed
 - Ensure the capitalization on corrections is correct
+- Explain when quotations are needed
 
 * Make sure the correctedText includes normalized paragraph breaks (two newlines) where needed
 * Note that some words may be incorrectly spelt phonetically - try to identify these where possible, e.g. "tarisim" -> terrorism, "damnit inflo" -> "dynamics influence"
