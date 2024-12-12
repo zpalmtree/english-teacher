@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -124,7 +125,7 @@ async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
 
     try {
         return JSON.parse(toolCall.function.arguments);
-    } catch (e) {
+    } catch (e: any) {
         throw new Error(`Failed to parse OpenAI response: ${e.message}`);
     }
 }
@@ -167,10 +168,15 @@ async function checkWithClaude(prompt: string): Promise<CorrectionResult> {
         ]
     });
 
-    const result = response.content[0].text;
+    // Get the first content block
+    const content = response.content[0];
+    if (!content || content.type !== 'text') {
+        throw new Error("Unexpected response format from Claude");
+    }
+
     try {
-        return JSON.parse(result);
-    } catch (e) {
+        return JSON.parse(content.text);
+    } catch (e: any) {
         throw new Error(`Failed to parse Claude response: ${e.message}`);
     }
 }
@@ -201,7 +207,7 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify(result), {
                 headers: { 'Content-Type': 'application/json' },
             });
-        } catch (claudeError) {
+        } catch (claudeError: any) {
             console.error('Claude request failed:', claudeError);
             
             // More specific error message based on the type of error
