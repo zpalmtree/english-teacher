@@ -68,20 +68,6 @@ export default function EnglishTeacher() {
         }
     }
 
-    const formatCorrection = (correction: string) => {
-        // Replace [PARAGRAPH BREAK] with visual indicator
-        return correction.split('[PARAGRAPH BREAK]').map((part, index) => (
-            index === 0 ? part : (
-                <span key={index}>
-                    <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-600 text-sm rounded mx-1">
-                        ¶ New Paragraph
-                    </span>
-                    {part}
-                </span>
-            )
-        ))
-    }
-
     const renderResult = () => {
         if (!result) return null
 
@@ -94,7 +80,7 @@ export default function EnglishTeacher() {
                         {hasErrors ? "Corrected Text:" : "Your Text (No Corrections Needed):"}
                     </h3>
                     <p className="text-lg leading-relaxed whitespace-pre-wrap">
-                        {formatCorrection(correctedText)}
+                        {correctedText}
                     </p>
                 </div>
 
@@ -125,7 +111,7 @@ export default function EnglishTeacher() {
                                                     </div>
                                                     <div className="text-gray-600 text-sm">→</div>
                                                     <div className="text-green-600 whitespace-pre-wrap">
-                                                        {formatCorrection(err.correction)}
+                                                        {err.correction}
                                                     </div>
                                                 </div>
                                                 <div className="mt-2 flex items-center gap-2">
@@ -168,7 +154,7 @@ export default function EnglishTeacher() {
                             placeholder="Type your text here..."
                             value={userText}
                             onChange={(e) => setUserText(e.target.value)}
-                            className="min-h-[150px] p-4 text-lg border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
+                            className="min-h-[250px] p-4 text-lg border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-400"
                         />
                         <Button 
                             type="submit" 

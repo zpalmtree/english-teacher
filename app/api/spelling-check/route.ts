@@ -31,32 +31,48 @@ Focus on these significant errors:
 - Major grammatical errors
 - Clear punctuation mistakes
 - Paragraph structure (VERY IMPORTANT)
+- Missing question marks
 
 For paragraphs specifically:
-- Identify where new paragraphs should start
-- Mark these clearly in the errors list
-- Include the previous sentence for context in the correction
-- Include the paragraph newlines in the error correction
-- Explain the specific reason for each paragraph break (e.g., new topic, new speaker, new time/place, etc.)
-- Consider a missing paragraph break as an error that needs correction
+- Before marking any paragraph error, check if there is ANY kind of paragraph break present (including multiple newlines)
+- If there is ANY visual separation between paragraphs in the original text, DO NOT include it as an error
+- Only flag completely missing paragraph breaks where ideas run together without any separation
+- There should be a new paragraph when a new speaker / different speaker talks
+- When checking for paragraph breaks:
+  1. First look for any kind of visual separation between ideas (newlines, multiple newlines, etc.)
+  2. If ANY separation exists, do not include it in the errors list
+  3. Only proceed to mark a paragraph error if the ideas are completely run together with no separation
+- In the correctedText:
+  - Normalize all existing paragraph breaks to exactly two newlines
+  - Add new paragraph breaks only where they were completely missing
+- For context: The example "According to monoda tarisim feels like fear of the unone because she does not no what will happin next on paj\n\n\nHow can family relationships and damnit inflo is a prison akshins" should NOT generate a paragraph error because there is already a break present
 
 DO NOT point out:
 - Minor formatting issues like extra spaces or newlines
 - Stylistic choices (e.g., using exclamation marks vs periods)
+- Existing paragraph breaks regardless of their formatting
+- Any kind of spacing or newline normalization as errors
 
-Include whitespace/newlines in the original + correction fields where applicable.
-Make sure the corrected text includes paragraphs where needed.
-Note that some words may be incorrectly spelt phonetically - try to identify these where possible, e.g. "tarisim" -> terrorism, "damnit inflo is a prison akshins" -> "dynamics influence a person's actions"
+DO:
+- Fix the corrected text to be perfect, even if we are not reporting these errors (e.g. 3 newlines -> 2 newlines for paragraphs)
+- Always explain why a correction is needed
+- Ensure the capitalization on corrections is correct
+
+* Make sure the correctedText includes normalized paragraph breaks (two newlines) where needed
+* Note that some words may be incorrectly spelt phonetically - try to identify these where possible, e.g. "tarisim" -> terrorism, "damnit inflo" -> "dynamics influence"
+* Do not remove whitespace or newlines when displaying the "original" text in the correction
+* Spelling errors should be addressed one by one, not combined into a single correction - unless it is a 'phrase' that all belongs together
 
 Keep feedback encouraging and focused on helping the student improve their writing.
 Always provide a corrected version of the text, even if there are no errors.`;
 
 async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
-    // Sanitize the prompt to prevent JSON parsing issues
-    const sanitizedPrompt = prompt.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    console.log(prompt);
+
+    const withNewlines = prompt.replace(/\n/g, '\\n');
 
     const response = await openai.chat.completions.create({
-        temperature: 0,
+        temperature: 0.01,
         model: 'gpt-4o',
         messages: [
             {
@@ -65,7 +81,7 @@ async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
             },
             {
                 role: 'user',
-                content: `Please check the following text: "${sanitizedPrompt}"`
+                content: `Please check the following text: "${withNewlines}"`
             }
         ],
         tools: [
@@ -132,9 +148,8 @@ async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
         throw new Error("Unexpected response format from OpenAI");
     }
 
-    console.log(toolCall.function.arguments);
-
     try {
+        console.log(toolCall.function.arguments);
         return JSON.parse(toolCall.function.arguments);
     } catch (e: any) {
         throw new Error(`Failed to parse OpenAI response: ${e.message}`);
