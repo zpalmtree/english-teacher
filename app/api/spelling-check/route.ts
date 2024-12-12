@@ -24,35 +24,44 @@ type CorrectionResult = {
 
 export const runtime = 'edge';
 
+const SYSTEM_PROMPT = `You are a helpful American English 5th grade teacher that checks spelling, grammar, and paragraph structure for 5th-grade students. 
+
+Focus on these significant errors:
+- Obvious spelling mistakes
+- Major grammatical errors
+- Clear punctuation mistakes
+- Paragraph structure (VERY IMPORTANT)
+
+For paragraphs specifically:
+- Identify where new paragraphs should start
+- Mark these clearly in the errors list
+- Include the previous sentence for context in the correction
+- Include the paragraph newlines in the error correction
+- Explain the specific reason for each paragraph break (e.g., new topic, new speaker, new time/place, etc.)
+- Consider a missing paragraph break as an error that needs correction
+
+DO NOT point out:
+- Minor formatting issues like extra spaces or newlines
+- Stylistic choices (e.g., using exclamation marks vs periods)
+
+Include whitespace/newlines in the original + correction fields where applicable.
+Make sure the corrected text includes paragraphs where needed.
+Note that some words may be incorrectly spelt phonetically - try to identify these where possible, e.g. "tarisim" -> terrorism, "damnit inflo is a prison akshins" -> "dynamics influence a person's actions"
+
+Keep feedback encouraging and focused on helping the student improve their writing.
+Always provide a corrected version of the text, even if there are no errors.`;
+
 async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
     // Sanitize the prompt to prevent JSON parsing issues
     const sanitizedPrompt = prompt.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 
     const response = await openai.chat.completions.create({
+        temperature: 0,
         model: 'gpt-4o',
         messages: [
             {
                 role: 'system',
-                content: `You are a helpful American English 5th grade teacher that checks spelling, grammar, and paragraph structure for 5th-grade students. 
-
-                Focus on these significant errors:
-                - Obvious spelling mistakes
-                - Major grammatical errors
-                - Clear punctuation mistakes
-                - Paragraph structure (VERY IMPORTANT)
-                
-                For paragraphs specifically:
-                - Identify where new paragraphs should start
-                - Mark these clearly in the errors list
-                - Explain the specific reason for each paragraph break (e.g., new topic, new speaker, new time/place, etc.)
-                - Consider a missing paragraph break as an error that needs correction
-                
-                DO NOT point out:
-                - Minor formatting issues like extra spaces or newlines
-                - Stylistic choices (e.g., using exclamation marks vs periods)
-                
-                Keep feedback encouraging and focused on helping the student improve their writing.
-                Always provide a corrected version of the text, even if there are no errors.`
+                content: SYSTEM_PROMPT,
             },
             {
                 role: 'user',
@@ -123,6 +132,8 @@ async function checkWithOpenAI(prompt: string): Promise<CorrectionResult> {
         throw new Error("Unexpected response format from OpenAI");
     }
 
+    console.log(toolCall.function.arguments);
+
     try {
         return JSON.parse(toolCall.function.arguments);
     } catch (e: any) {
@@ -142,26 +153,7 @@ async function checkWithClaude(prompt: string): Promise<CorrectionResult> {
     const response = await anthropic.messages.create({
         model: 'claude-3-sonnet-20240229',
         max_tokens: 1024,
-        system: `You are a helpful American English 5th grade teacher that checks spelling, grammar, and paragraph structure for 5th-grade students. 
-
-        Focus on these significant errors:
-        - Obvious spelling mistakes
-        - Major grammatical errors
-        - Clear punctuation mistakes
-        - Paragraph structure (VERY IMPORTANT)
-        
-        For paragraphs specifically:
-        - Identify where new paragraphs should start
-        - Mark these clearly in the errors list
-        - Explain the specific reason for each paragraph break (e.g., new topic, new speaker, new time/place, etc.)
-        - Consider a missing paragraph break as an error that needs correction
-        
-        DO NOT point out:
-        - Minor formatting issues like extra spaces or newlines
-        - Stylistic choices (e.g., using exclamation marks vs periods)
-        
-        Keep feedback encouraging and focused on helping the student improve their writing.
-        Always provide a corrected version of the text, even if there are no errors.
+        system: `${SYSTEM_PROMPT}
 
         Analyze the text and respond with a JSON object in this exact format:
         {
